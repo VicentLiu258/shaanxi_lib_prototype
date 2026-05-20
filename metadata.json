@@ -1,0 +1,6 @@
+{
+  "name": "陕西实验室管理系统",
+  "description": "数字化实验室教学服务管理平台，支持光/暗模式切换，包含实验室管理、危化品管理、环境监测预警及大数据中心。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

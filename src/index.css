@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-float: float 6s ease-in-out infinite;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+
+  @keyframes scan {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(200%); }
+  }
+
+  @keyframes moveVertical {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(100%); }
+  }
+}
+
+:root {
+  --primary-color: #3b82f6;
+  --sidebar-bg: #002B5B;
+  --bg-main: #F8FAFC;
+  --card-bg: #FFFFFF;
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(226, 232, 240, 0.8);
+  --text-main: #000000;
+}
+
+.dark {
+  --bg-main: #020617;
+  --card-bg: #0f172a;
+  --glass-bg: rgba(15, 23, 42, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --text-main: #f1f5f9;
+}
+
+body {
+  @apply bg-[var(--bg-main)] text-[var(--text-main)] transition-colors duration-300 antialiased font-sans;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+/* Professional Card Styling */
+.pro-card {
+  @apply bg-[var(--card-bg)] rounded-xl shadow-sm border border-slate-100 dark:border-white/5 transition-colors;
+}
+
+/* 1920px specification constraint */
+.app-container {
+  @apply mx-auto w-full max-w-[1920px] h-full relative flex flex-col bg-[var(--bg-main)] transition-colors;
+}
+
+/* Glassmorphism utility */
+.glass {
+  @apply backdrop-blur-xl bg-[var(--glass-bg)] border border-[var(--glass-border)];
+}
+
+.glass-dark {
+  @apply backdrop-blur-xl bg-slate-900/40 border border-white/10;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-slate-800;
+}
+
