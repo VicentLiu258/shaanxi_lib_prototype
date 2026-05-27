@@ -149,7 +149,7 @@ export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ name, onBack
   };
 
   return (
-    <div className="flex flex-col h-screen w-full bg-[var(--bg-main)] text-slate-800 dark:text-slate-200 transition-colors">
+    <div className="flex flex-col h-screen w-full bg-[var(--bg-main)] text-[var(--text-main)] transition-colors">
       <ToastContainer toasts={toasts} />
 
       <header className="h-16 bg-[var(--card-bg)] border-b border-slate-200 dark:border-white/10 flex items-center justify-between px-6 shrink-0 z-50 shadow-sm">
@@ -161,29 +161,29 @@ export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ name, onBack
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black text-xs">资</div>
             <div>
               <h1 className="text-lg font-black tracking-tight leading-none">陕西实验室 · {name}</h1>
-              <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Asset Management System</p>
+              <p className="text-[10px] font-bold text-muted mt-1 uppercase tracking-widest">Asset Management System</p>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center bg-slate-100 dark:bg-white/5 rounded-full px-4 py-1.5 gap-2 border border-slate-200 dark:border-white/10">
-            <Search size={14} className="text-slate-400" />
+            <Search size={14} className="text-muted" />
             <input
               value={searchKeyword}
               onChange={e => setSearchKeyword(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
               placeholder="搜索资产编号/名称/使用人..."
-              className="bg-transparent border-none outline-none text-xs font-medium w-48"
+              className="bg-transparent border-none outline-none text-xs font-medium w-48 text-[var(--text-main)] placeholder:text-[var(--text-placeholder)]"
             />
           </div>
-          <button onClick={() => { showToast('模拟扫码成功'); navigate('asset-list'); }} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500" title="扫码/RFID">
+          <button onClick={() => { showToast('模拟扫码成功'); navigate('asset-list'); }} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-secondary" title="扫码/RFID">
             <ScanLine size={18} />
           </button>
-          <button onClick={() => document.documentElement.requestFullscreen?.()} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 hidden md:block">
+          <button onClick={() => document.documentElement.requestFullscreen?.()} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-secondary hidden md:block">
             <Maximize size={18} />
           </button>
-          <button className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500">
+          <button className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-secondary">
             <Bell size={18} />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
           </button>
@@ -195,9 +195,9 @@ export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ name, onBack
               </div>
               <div className="text-left hidden md:block">
                 <div className="text-xs font-bold">{currentUser?.name || '加载中'}</div>
-                <div className="text-[10px] text-slate-400">{currentUser?.role}</div>
+                <div className="text-[10px] text-muted">{currentUser?.role}</div>
               </div>
-              <ChevronDown size={14} className="text-slate-400" />
+              <ChevronDown size={14} className="text-muted" />
             </button>
             {showUserMenu && (
               <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-white/10 py-2 z-50">
@@ -233,7 +233,7 @@ export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ name, onBack
                     'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all',
                     activeMenu === group.id || group.subItems?.some(s => s.id === activeMenu)
                       ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600'
-                      : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5',
+                      : 'text-secondary hover:bg-slate-50 dark:hover:bg-white/5',
                   )}
                 >
                   <div className="flex items-center gap-2.5">
@@ -254,7 +254,7 @@ export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ name, onBack
                           'w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all',
                           activeMenu === sub.id
                             ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                            : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5',
+                            : 'text-muted hover:text-slate-900 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5',
                         )}
                       >
                         {sub.label}
@@ -275,8 +275,8 @@ export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ name, onBack
 
         <main className="flex-1 overflow-y-auto p-6">
           <div className="mb-6">
-            <h2 className="text-xl font-black text-slate-800 dark:text-white">{PAGE_TITLES[activeMenu] || activeMenu}</h2>
-            <p className="text-xs text-slate-400 mt-1">数据持久化至 localStorage · 共 85+ 条演示资产</p>
+            <h2 className="text-xl font-black text-[var(--text-main)]">{PAGE_TITLES[activeMenu] || activeMenu}</h2>
+            <p className="text-xs text-muted mt-1">数据持久化至 localStorage · 共 85+ 条演示资产</p>
           </div>
           {renderContent()}
         </main>

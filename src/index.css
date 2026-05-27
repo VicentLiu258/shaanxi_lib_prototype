@@ -23,14 +23,20 @@
   }
 }
 
-:root {
+:root,
+.light {
   --primary-color: #3b82f6;
   --sidebar-bg: #002B5B;
   --bg-main: #F8FAFC;
   --card-bg: #FFFFFF;
   --glass-bg: rgba(255, 255, 255, 0.8);
   --glass-border: rgba(226, 232, 240, 0.8);
-  --text-main: #000000;
+  /* 浅色主题：主/次/辅助文字（对比度约 7:1 / 4.5:1+） */
+  --text-main: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #475569;
+  --text-label: #1e293b;
+  --text-placeholder: #64748b;
 }
 
 .dark {
@@ -39,6 +45,64 @@
   --glass-bg: rgba(15, 23, 42, 0.8);
   --glass-border: rgba(255, 255, 255, 0.1);
   --text-main: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-label: #e2e8f0;
+  --text-placeholder: #64748b;
+}
+
+/* 语义化文字色（随主题切换） */
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-label {
+  color: var(--text-label);
+}
+
+/* 浅色主题：提升 Tailwind slate 次要色的可读性 */
+.light .text-slate-300 {
+  color: #64748b;
+}
+
+.light .text-slate-400 {
+  color: #475569;
+}
+
+.light .text-slate-500 {
+  color: #334155;
+}
+
+.light .text-slate-600 {
+  color: #1e293b;
+}
+
+.light thead th,
+.light tr.text-slate-500,
+.light tr.text-slate-500 th,
+.light .table-header-muted {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.light input::placeholder,
+.light textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+.light input:not([type='checkbox']):not([type='radio']),
+.light select,
+.light textarea {
+  color: var(--text-main);
+}
+
+.light .pro-card {
+  color: var(--text-main);
 }
 
 body {
