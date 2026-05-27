@@ -4,7 +4,8 @@ import {
   LayoutDashboard, Menu, ChevronLeft, ChevronDown, ArrowLeft,
   Search, Bell, Database, FolderTree, MapPin, Truck, ClipboardList,
   PackagePlus, UserCheck, Clock, CheckSquare, ShoppingCart, Trash2,
-  BarChart3, RotateCcw, ScanLine, Maximize, LogOut,
+  BarChart3, RotateCcw, ScanLine, Maximize, LogOut, Wrench, GitBranch,
+  WalletCards,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { ToastContainer, useToast } from './components/shared';
@@ -20,6 +21,10 @@ import { AssetHistoryPage } from './pages/AssetHistoryPage';
 import { PurchaseApplyPage } from './pages/PurchaseApplyPage';
 import { InventoryCheckPage } from './pages/InventoryCheckPage';
 import { ScrapDisposalPage } from './pages/ScrapDisposalPage';
+import { MaintenancePlanPage } from './pages/MaintenancePlanPage';
+import { LifecycleOverviewPage } from './pages/LifecycleOverviewPage';
+import { FinanceReportPage } from './pages/FinanceReportPage';
+import { BorrowReportPage } from './pages/BorrowReportPage';
 import { getCurrentUserAsync, switchUser, resetDemoData } from './mock/api';
 import { SAMPLE_USERS } from './mock/constants';
 import { User } from './types';
@@ -38,16 +43,19 @@ const PAGE_TITLES: Record<string, string> = {
   'asset-receive': '资产领用',
   'asset-history': '资产履历',
   'asset-inventory': '资产盘点',
+  'asset-maintenance': '维保计划',
   'basic-category': '资产分类',
   'basic-area': '存放区域',
   'basic-supplier': '供应商管理',
   purchase: '采购申请',
+  lifecycle: '流转总览',
   scrap: '报废处置',
   'report-category': '分类统计',
+  'report-finance': '财务折旧',
   'report-borrow': '借用账查询',
 };
 
-export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ onBack, onLogout }) => {
+export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ name, onBack, onLogout }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['asset', 'basic']);
@@ -97,12 +105,14 @@ export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ onBack, onLo
         { id: 'asset-receive', label: '资产领用', icon: UserCheck },
         { id: 'asset-history', label: '资产履历', icon: Clock },
         { id: 'asset-inventory', label: '资产盘点', icon: CheckSquare },
+        { id: 'asset-maintenance', label: '维保计划', icon: Wrench },
       ],
     },
     {
-      id: 'finance', label: '财务核算', icon: ShoppingCart,
+      id: 'finance', label: '生命周期', icon: GitBranch,
       subItems: [
         { id: 'purchase', label: '采购申请', icon: ShoppingCart },
+        { id: 'lifecycle', label: '流转总览', icon: GitBranch },
         { id: 'scrap', label: '报废处置', icon: Trash2 },
       ],
     },
@@ -110,6 +120,7 @@ export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ onBack, onLo
       id: 'reports', label: '查询报表', icon: BarChart3,
       subItems: [
         { id: 'report-category', label: '分类统计', icon: BarChart3 },
+        { id: 'report-finance', label: '财务折旧', icon: WalletCards },
         { id: 'report-borrow', label: '借用账查询', icon: ClipboardList },
       ],
     },
@@ -123,20 +134,16 @@ export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ onBack, onLo
       case 'asset-receive': return <AssetReceivePage showToast={showToast} />;
       case 'asset-history': return <AssetHistoryPage />;
       case 'asset-inventory': return <InventoryCheckPage showToast={showToast} />;
+      case 'asset-maintenance': return <MaintenancePlanPage showToast={showToast} />;
       case 'basic-category': return <CategoryManagePage />;
       case 'basic-area': return <AreaManagePage />;
       case 'basic-supplier': return <SupplierManagePage showToast={showToast} />;
       case 'purchase': return <PurchaseApplyPage showToast={showToast} />;
+      case 'lifecycle': return <LifecycleOverviewPage onNavigate={navigate} />;
       case 'scrap': return <ScrapDisposalPage />;
       case 'report-category': return <CategoryReportPage />;
-      case 'report-borrow':
-        return (
-          <div className="pro-card p-12 bg-[var(--card-bg)] text-center">
-            <ClipboardList size={48} className="mx-auto text-slate-300 mb-4" />
-            <h3 className="font-bold text-slate-500">借用账查询</h3>
-            <p className="text-sm text-slate-400 mt-2">该模块将在下一阶段实现，当前可通过资产清单筛选「借用中」状态查看。</p>
-          </div>
-        );
+      case 'report-finance': return <FinanceReportPage />;
+      case 'report-borrow': return <BorrowReportPage />;
       default: return <DashboardPage onNavigate={navigate} />;
     }
   };
@@ -153,7 +160,7 @@ export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ onBack, onLo
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black text-xs">资</div>
             <div>
-              <h1 className="text-lg font-black tracking-tight leading-none">陕西实验室 · 固定资产管理</h1>
+              <h1 className="text-lg font-black tracking-tight leading-none">陕西实验室 · {name}</h1>
               <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Asset Management System</p>
             </div>
           </div>

@@ -15,6 +15,7 @@ import { InstrumentManagerView } from './views/InstrumentManager/InstrumentManag
 import { TeachingManagerView } from './views/TeachingManager/TeachingManagerView';
 import { HCManageView } from './views/HCManage/HCManageView';
 import { ResourceLibraryView } from './views/ResourceLibrary/ResourceLibraryView';
+import { AssetManagerView } from './views/AssetManager/AssetManagerView';
 import { SystemSettingsView } from './views/SystemSettingsView';
 
 import { UnauthorizedView } from './views/UnauthorizedView';
@@ -63,6 +64,8 @@ export default function App() {
       navigate('/hc-manage');
     } else if (id === 'res') {
       navigate('/resource-library');
+    } else if (id === 'asset') {
+      navigate('/asset-manager');
     } else {
       setActiveSubsystem({ id, name });
       navigate(`/subsystem/${id}`);
@@ -117,6 +120,7 @@ export default function App() {
           <Route path="/teaching-manager" element={<TeachingManagerView onBack={handleGoBack} onLogout={handleLogout} />} />
           <Route path="/hc-manage/*" element={<HCManageView />} />
           <Route path="/resource-library/*" element={<ResourceLibraryView onBack={handleGoBack} onLogout={handleLogout} />} />
+          <Route path="/asset-manager" element={<AssetManagerView id="asset" name="固定资产管理" onBack={handleGoBack} onLogout={handleLogout} />} />
           <Route path="/settings" element={<SystemSettingsView onBack={handleGoBack} onLogout={handleLogout} />} />
           <Route 
             path="/subsystem/:id" 

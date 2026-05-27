@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Database, PlayCircle, PauseCircle, AlertTriangle, Percent, ArrowRight, TrendingUp } from 'lucide-react';
+import { Database, PlayCircle, PauseCircle, AlertTriangle, Percent, ArrowRight, TrendingUp, GitBranch, WalletCards, Wrench } from 'lucide-react';
 import { EchartsWrapper } from '../../../components/visualization/EchartsWrapper';
 import { DashboardStats, MonthlyNewAsset, BusinessDistribution, OperationLog } from '../types';
 import { getDashboardStats, getMonthlyNewAssets, getBusinessDistribution, getRecentLogs } from '../mock/api';
@@ -51,7 +51,9 @@ export function DashboardPage({ onNavigate }: Props) {
     { key: 'asset-inbound', label: '资产入库', icon: TrendingUp },
     { key: 'asset-list', label: '资产清单', icon: Database },
     { key: 'asset-receive', label: '资产领用', icon: ArrowRight },
-    { key: 'basic-category', label: '分类管理', icon: PauseCircle },
+    { key: 'asset-maintenance', label: '维保计划', icon: Wrench },
+    { key: 'lifecycle', label: '流转总览', icon: GitBranch },
+    { key: 'report-finance', label: '财务折旧', icon: WalletCards },
   ];
 
   if (loading) {
@@ -73,10 +75,25 @@ export function DashboardPage({ onNavigate }: Props) {
       </div>
 
       {stats && (
-        <div className="pro-card p-4 bg-blue-50 dark:bg-blue-500/10 border-blue-100 dark:border-blue-500/20">
-          <span className="text-sm text-blue-700 dark:text-blue-300">
-            资产净值合计：<strong className="text-lg">¥{stats.totalValue.toLocaleString()}</strong>
-          </span>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 pro-card p-4 bg-blue-50 dark:bg-blue-500/10 border-blue-100 dark:border-blue-500/20">
+            <span className="text-sm text-blue-700 dark:text-blue-300">
+              资产净值合计：<strong className="text-lg">¥{stats.totalValue.toLocaleString()}</strong>
+            </span>
+            <p className="text-xs text-blue-600/80 dark:text-blue-300/70 mt-1">
+              当前演示数据覆盖入库、领用、维保、盘点、报废和折旧口径，可通过左侧菜单切换完整业务。
+            </p>
+          </div>
+          <button
+            onClick={() => onNavigate('lifecycle')}
+            className="pro-card p-4 bg-[var(--card-bg)] text-left hover:border-blue-200 dark:hover:border-blue-500/40 transition-all"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold">生命周期总览</span>
+              <ArrowRight size={18} className="text-blue-600" />
+            </div>
+            <p className="text-xs text-slate-500 mt-2">从采购到报废的一张流程图，适合汇报和联调。</p>
+          </button>
         </div>
       )}
 

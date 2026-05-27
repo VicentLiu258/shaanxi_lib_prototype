@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Search, Plus, Upload, Download, Printer, X, Clock } from 'lucide-react';
+import { Search, Plus, Upload, Download, Printer, X, Clock, CheckSquare, Trash2, Wrench } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Asset, AssetFilter, OperationLog } from '../types';
 import { getAssets, getAssetLogs, updateAssetStatus, importAssetsFromRows, exportAssetsToXlsxData } from '../mock/api';
@@ -20,6 +20,7 @@ export function AssetListPage({ onOpenInbound, showToast, initialKeyword }: Prop
   const [drawerAsset, setDrawerAsset] = useState<Asset | null>(null);
   const [logs, setLogs] = useState<OperationLog[]>([]);
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const pageSize = 15;
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -47,6 +48,27 @@ export function AssetListPage({ onOpenInbound, showToast, initialKeyword }: Prop
   const quickScrap = async (asset: Asset) => {
     await updateAssetStatus(asset.id, '已报废', { remark: '快捷报废清理' });
     showToast('已标记报废');
+    load();
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const togglePageSelect = () => {
+    const ids = paged.map(row => row.id);
+    const allSelected = ids.every(id => selectedIds.includes(id));
+    setSelectedIds(prev => allSelected ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids])));
+  };
+
+  const batchChangeStatus = async (status: '维保中' | '已报废', remark: string) => {
+    if (!selectedIds.length) {
+      showToast('请先选择资产', 'warning');
+      return;
+    }
+    await Promise.all(selectedIds.map(id => updateAssetStatus(id, status, { remark })));
+    showToast(`已批量处理 ${selectedIds.length} 项资产`);
+    setSelectedIds([]);
     load();
   };
 
@@ -97,11 +119,25 @@ export function AssetListPage({ onOpenInbound, showToast, initialKeyword }: Prop
           <button onClick={doExport} className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-medium hover:bg-slate-50">
             <Download size={16} /> 导出列表
           </button>
+          <button
+            onClick={() => batchChangeStatus('维保中', '批量维保派工')}
+            disabled={!selectedIds.length}
+            className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-medium hover:bg-slate-50 disabled:opacity-40"
+          >
+            <Wrench size={16} /> 批量维保
+          </button>
+          <button
+            onClick={() => batchChangeStatus('已报废', '批量报废清理')}
+            disabled={!selectedIds.length}
+            className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-40"
+          >
+            <Trash2 size={16} /> 批量报废
+          </button>
           <button disabled className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 dark:bg-white/5 text-slate-400 rounded-xl text-sm font-medium cursor-not-allowed">
             <Printer size={16} /> 打印标签
           </button>
         </div>
-        <span className="text-sm text-slate-500">共 {data.length} 条资产</span>
+        <span className="text-sm text-slate-500">共 {data.length} 条资产，已选 {selectedIds.length} 项</span>
       </div>
 
       <div className="pro-card p-4 bg-[var(--card-bg)]">
@@ -141,6 +177,11 @@ export function AssetListPage({ onOpenInbound, showToast, initialKeyword }: Prop
             <thead>
               <tr className="bg-slate-50 dark:bg-white/5 text-slate-500 text-xs uppercase">
                 <th className="px-4 py-3 text-left">状态</th>
+                <th className="px-4 py-3 text-left">
+                  <button onClick={togglePageSelect} className="flex items-center gap-1 text-slate-500 hover:text-blue-600">
+                    <CheckSquare size={14} /> 选择
+                  </button>
+                </th>
                 <th className="px-4 py-3 text-left">资产编号</th>
                 <th className="px-4 py-3 text-left">资产名称</th>
                 <th className="px-4 py-3 text-left">分类</th>
@@ -152,12 +193,15 @@ export function AssetListPage({ onOpenInbound, showToast, initialKeyword }: Prop
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="px-4 py-12 text-center text-slate-400">加载中...</td></tr>
+                <tr><td colSpan={9} className="px-4 py-12 text-center text-slate-400">加载中...</td></tr>
               ) : paged.length === 0 ? (
-                <tr><td colSpan={8} className="px-4 py-12 text-center text-slate-400">暂无数据</td></tr>
+                <tr><td colSpan={9} className="px-4 py-12 text-center text-slate-400">暂无数据</td></tr>
               ) : paged.map(row => (
                 <tr key={row.id} className="border-t border-slate-100 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/[0.02]">
                   <td className="px-4 py-3"><StatusBadge status={row.status} /></td>
+                  <td className="px-4 py-3">
+                    <input type="checkbox" checked={selectedIds.includes(row.id)} onChange={() => toggleSelect(row.id)} className="rounded" />
+                  </td>
                   <td className="px-4 py-3 font-mono text-xs">{row.assetNo}</td>
                   <td className="px-4 py-3 font-medium">{row.name}</td>
                   <td className="px-4 py-3 text-slate-500">{row.categoryName}</td>
