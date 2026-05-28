@@ -2,7 +2,7 @@ import {
   Asset, CategoryNode, AreaNode, Supplier, OperationLog, User,
   DashboardStats, MonthlyNewAsset, BusinessDistribution, AssetFilter,
   InboundPayload, ReceivePayload, AssetStatus, PurchaseApplication,
-  InventoryItem, ScrapRecord,
+  InventoryItem, ScrapRecord, DamageRecord, WarrantyRecord, TransferRecord,
 } from '../types';
 import {
   MOCK_DATA_KEY, MOCK_CURRENT_USER_KEY, FAKE_DELAY_MIN, FAKE_DELAY_MAX,
@@ -23,7 +23,19 @@ function loadDB(): MockDatabase {
   const raw = localStorage.getItem(MOCK_DATA_KEY);
   if (raw) {
     try {
-      db = JSON.parse(raw);
+      const parsed = JSON.parse(raw) as Partial<MockDatabase>;
+      // Backward-compatible migration for old localStorage snapshots.
+      db = {
+        ...createInitialSeed(),
+        ...parsed,
+        purchases: parsed.purchases ?? [],
+        inventory: parsed.inventory ?? [],
+        scraps: parsed.scraps ?? [],
+        damages: parsed.damages ?? [],
+        warranties: parsed.warranties ?? [],
+        transfers: parsed.transfers ?? [],
+      };
+      localStorage.setItem(MOCK_DATA_KEY, JSON.stringify(db));
       return db!;
     } catch { /* fall through */ }
   }
@@ -304,7 +316,208 @@ export async function scanInventoryItem(id: string): Promise<InventoryItem | nul
 
 export async function getScrapRecords(): Promise<ScrapRecord[]> {
   await delay(80);
-  return loadDB().scraps;
+  return loadDB().scraps ?? [];
+}
+
+export async function getDamageRecords(): Promise<DamageRecord[]> {
+  await delay(80);
+  return loadDB().damages ?? [];
+}
+
+export async function createDamageRecord(payload: {
+  assetId: string;
+  reason: string;
+  reporter: string;
+  note?: string;
+}): Promise<DamageRecord> {
+  await delay(180);
+  const dbNow = loadDB();
+  const asset = dbNow.assets.find(a => a.id === payload.assetId);
+  if (!asset) throw new Error('资产不存在');
+  const rec: DamageRecord = {
+    id: 'DM-' + Date.now().toString().slice(-6),
+    assetId: asset.id,
+    assetNo: asset.assetNo,
+    assetName: asset.name,
+    reason: payload.reason,
+    reporter: payload.reporter,
+    reportDate: new Date().toISOString().slice(0, 10),
+    status: '待审批',
+    note: payload.note,
+  };
+  dbNow.damages.unshift(rec);
+  addLog({
+    assetId: asset.id, assetNo: asset.assetNo, assetName: asset.name,
+    type: '报损',
+    beforeStatus: asset.status,
+    afterStatus: asset.status,
+    remark: `发起报损：${payload.reason}`,
+  });
+  persist();
+  return rec;
+}
+
+export async function approveDamageRecord(id: string, approved: boolean): Promise<void> {
+  await delay(180);
+  const dbNow = loadDB();
+  const rec = dbNow.damages.find(d => d.id === id);
+  if (!rec) throw new Error('报损记录不存在');
+  rec.status = approved ? '已通过' : '已驳回';
+  const asset = dbNow.assets.find(a => a.id === rec.assetId);
+  if (asset) {
+    const old = asset.status;
+    if (approved) asset.status = '维保中';
+    asset.updatedAt = new Date().toISOString();
+    addLog({
+      assetId: asset.id, assetNo: asset.assetNo, assetName: asset.name,
+      type: '报损',
+      beforeStatus: old,
+      afterStatus: asset.status,
+      remark: approved ? '报损审批通过，转入维保中' : '报损审批驳回',
+    });
+  }
+  persist();
+}
+
+export async function getWarrantyRecords(): Promise<WarrantyRecord[]> {
+  await delay(80);
+  return loadDB().warranties ?? [];
+}
+
+export async function createWarrantyRecord(payload: {
+  assetId: string;
+  issue: string;
+  vendor: string;
+  requester: string;
+  note?: string;
+}): Promise<WarrantyRecord> {
+  await delay(180);
+  const dbNow = loadDB();
+  const asset = dbNow.assets.find(a => a.id === payload.assetId);
+  if (!asset) throw new Error('资产不存在');
+  const rec: WarrantyRecord = {
+    id: 'WR-' + Date.now().toString().slice(-6),
+    assetId: asset.id,
+    assetNo: asset.assetNo,
+    assetName: asset.name,
+    issue: payload.issue,
+    vendor: payload.vendor,
+    requester: payload.requester,
+    requestDate: new Date().toISOString().slice(0, 10),
+    status: '待处理',
+    note: payload.note,
+  };
+  dbNow.warranties.unshift(rec);
+  const old = asset.status;
+  asset.status = '维保中';
+  asset.updatedAt = new Date().toISOString();
+  addLog({
+    assetId: asset.id, assetNo: asset.assetNo, assetName: asset.name,
+    type: '维保变更',
+    beforeStatus: old,
+    afterStatus: asset.status,
+    remark: `发起保修：${payload.issue}`,
+  });
+  persist();
+  return rec;
+}
+
+export async function progressWarrantyRecord(id: string, status: WarrantyRecord['status']): Promise<void> {
+  await delay(180);
+  const dbNow = loadDB();
+  const rec = dbNow.warranties.find(w => w.id === id);
+  if (!rec) throw new Error('保修记录不存在');
+  rec.status = status;
+  const asset = dbNow.assets.find(a => a.id === rec.assetId);
+  if (asset) {
+    const old = asset.status;
+    if (status === '已完成') {
+      asset.status = '在用';
+      asset.lastMaintainDate = new Date().toISOString().slice(0, 10);
+      const next = new Date();
+      next.setMonth(next.getMonth() + 6);
+      asset.nextMaintainDate = next.toISOString().slice(0, 10);
+    } else if (status === '维修中') {
+      asset.status = '维保中';
+    }
+    asset.updatedAt = new Date().toISOString();
+    addLog({
+      assetId: asset.id, assetNo: asset.assetNo, assetName: asset.name,
+      type: status === '已完成' ? '保养' : '维保变更',
+      beforeStatus: old,
+      afterStatus: asset.status,
+      remark: status === '已完成' ? '保修完成，恢复在用' : '保修处理中',
+    });
+  }
+  persist();
+}
+
+export async function getTransferRecords(): Promise<TransferRecord[]> {
+  await delay(80);
+  return loadDB().transfers ?? [];
+}
+
+export async function createTransferRecord(payload: {
+  assetId: string;
+  toDept: string;
+  toLocationId: string;
+  toLocationPath: string;
+  requester: string;
+  note?: string;
+}): Promise<TransferRecord> {
+  await delay(180);
+  const dbNow = loadDB();
+  const asset = dbNow.assets.find(a => a.id === payload.assetId);
+  if (!asset) throw new Error('资产不存在');
+  const rec: TransferRecord = {
+    id: 'TR-' + Date.now().toString().slice(-6),
+    assetId: asset.id,
+    assetNo: asset.assetNo,
+    assetName: asset.name,
+    fromDept: asset.useDept,
+    toDept: payload.toDept,
+    fromLocation: asset.locationPath,
+    toLocationId: payload.toLocationId,
+    toLocationPath: payload.toLocationPath,
+    requester: payload.requester,
+    requestDate: new Date().toISOString().slice(0, 10),
+    status: '待确认',
+    note: payload.note,
+  };
+  dbNow.transfers.unshift(rec);
+  addLog({
+    assetId: asset.id, assetNo: asset.assetNo, assetName: asset.name,
+    type: '转移',
+    beforeStatus: asset.status,
+    afterStatus: asset.status,
+    remark: `发起转移：${asset.useDept} -> ${payload.toDept}`,
+  });
+  persist();
+  return rec;
+}
+
+export async function completeTransferRecord(id: string, cancel = false): Promise<void> {
+  await delay(180);
+  const dbNow = loadDB();
+  const rec = dbNow.transfers.find(t => t.id === id);
+  if (!rec) throw new Error('转移记录不存在');
+  rec.status = cancel ? '已取消' : '已完成';
+  const asset = dbNow.assets.find(a => a.id === rec.assetId);
+  if (asset && !cancel) {
+    asset.useDept = rec.toDept;
+    asset.locationId = rec.toLocationId;
+    asset.locationPath = rec.toLocationPath;
+    asset.updatedAt = new Date().toISOString();
+    addLog({
+      assetId: asset.id, assetNo: asset.assetNo, assetName: asset.name,
+      type: '转移',
+      beforeStatus: asset.status,
+      afterStatus: asset.status,
+      targetDept: rec.toDept,
+      remark: `资产转移完成：${rec.fromLocation} -> ${rec.toLocationPath}`,
+    });
+  }
+  persist();
 }
 
 export async function importAssetsFromRows(rows: Record<string, unknown>[]): Promise<{ added: number; errors: string[] }> {

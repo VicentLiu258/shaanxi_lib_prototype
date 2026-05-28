@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import {
   Asset, CategoryNode, AreaNode, Supplier, OperationLog, User,
   AssetStatus, OperationType, PurchaseApplication, InventoryItem, ScrapRecord,
+  DamageRecord, WarrantyRecord, TransferRecord,
 } from '../types';
 import { DEPARTMENTS, SAMPLE_USERS } from './constants';
 
@@ -246,6 +247,56 @@ export function buildScrapRecords(assets: Asset[]): ScrapRecord[] {
   }));
 }
 
+export function buildDamageRecords(assets: Asset[]): DamageRecord[] {
+  const pick = assets.filter(a => a.status !== '已报废').slice(3, 8);
+  return pick.map((a, i) => ({
+    id: `DM-${i + 1}`,
+    assetId: a.id,
+    assetNo: a.assetNo,
+    assetName: a.name,
+    reason: ['外壳损坏', '精度异常', '关键部件磨损', '电路故障'][i % 4],
+    reporter: ['王教授', '张伟', '李研究员'][i % 3],
+    reportDate: `2026-05-${String(10 + i).padStart(2, '0')}`,
+    status: i < 2 ? '待审批' : '已通过',
+    note: i % 2 === 0 ? '建议尽快处理' : undefined,
+  }));
+}
+
+export function buildWarrantyRecords(assets: Asset[]): WarrantyRecord[] {
+  const pick = assets.filter(a => a.status !== '已报废').slice(8, 13);
+  return pick.map((a, i) => ({
+    id: `WR-${i + 1}`,
+    assetId: a.id,
+    assetNo: a.assetNo,
+    assetName: a.name,
+    issue: ['启动失败', '温控异常', '数据采集中断', '噪音偏高'][i % 4],
+    vendor: a.supplierName || '原厂',
+    requester: ['赵教授', '陈明', '杨静'][i % 3],
+    requestDate: `2026-05-${String(5 + i).padStart(2, '0')}`,
+    status: i === 0 ? '维修中' : (i === 1 ? '已完成' : '待处理'),
+    note: i === 1 ? '已更换故障模块' : undefined,
+  }));
+}
+
+export function buildTransferRecords(assets: Asset[]): TransferRecord[] {
+  const pick = assets.filter(a => a.status === '在用' || a.status === '闲置').slice(0, 6);
+  return pick.map((a, i) => ({
+    id: `TR-${i + 1}`,
+    assetId: a.id,
+    assetNo: a.assetNo,
+    assetName: a.name,
+    fromDept: a.useDept,
+    toDept: DEPARTMENTS[(i + 2) % DEPARTMENTS.length],
+    fromLocation: a.locationPath,
+    toLocationId: 'area_phy_f2_201',
+    toLocationPath: '陕西实验室/物理实验中心/2层/201室',
+    requester: ['王强', '刘芳', '周杰'][i % 3],
+    requestDate: `2026-05-${String(12 + i).padStart(2, '0')}`,
+    status: i < 2 ? '待确认' : '已完成',
+    note: i % 2 ? '教学任务调整' : undefined,
+  }));
+}
+
 export interface MockDatabase {
   assets: Asset[];
   categories: CategoryNode[];
@@ -256,6 +307,9 @@ export interface MockDatabase {
   purchases: PurchaseApplication[];
   inventory: InventoryItem[];
   scraps: ScrapRecord[];
+  damages: DamageRecord[];
+  warranties: WarrantyRecord[];
+  transfers: TransferRecord[];
   version: number;
 }
 
@@ -272,6 +326,9 @@ export function createInitialSeed(): MockDatabase {
     purchases: buildPurchaseApplications(),
     inventory: buildInventoryItems(assets),
     scraps: buildScrapRecords(assets),
+    damages: buildDamageRecords(assets),
+    warranties: buildWarrantyRecords(assets),
+    transfers: buildTransferRecords(assets),
     version: 1,
   };
 }
