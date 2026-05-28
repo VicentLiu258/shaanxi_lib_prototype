@@ -169,3 +169,44 @@ export interface ScrapRecord {
   status: '待审批' | '已通过' | '已驳回';
   originalValue: number;
 }
+
+export interface DamageRecord {
+  id: string;
+  assetId: string;
+  assetNo: string;
+  assetName: string;
+  reason: string;
+  reporter: string;
+  reportDate: string;
+  status: '待审批' | '已通过' | '已驳回';
+  note?: string;
+}
+
+export interface WarrantyRecord {
+  id: string;
+  assetId: string;
+  assetNo: string;
+  assetName: string;
+  issue: string;
+  vendor: string;
+  requester: string;
+  requestDate: string;
+  status: '待处理' | '维修中' | '已完成';
+  note?: string;
+}
+
+export interface TransferRecord {
+  id: string;
+  assetId: string;
+  assetNo: string;
+  assetName: string;
+  fromDept: string;
+  toDept: string;
+  fromLocation: string;
+  toLocationId: string;
+  toLocationPath: string;
+  requester: string;
+  requestDate: string;
+  status: '待确认' | '已完成' | '已取消';
+  note?: string;
+}

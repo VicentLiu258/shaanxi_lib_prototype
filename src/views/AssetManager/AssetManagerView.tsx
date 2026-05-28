@@ -6,6 +6,7 @@ import {
   PackagePlus, UserCheck, Clock, CheckSquare, ShoppingCart, Trash2,
   BarChart3, RotateCcw, ScanLine, Maximize, LogOut, Wrench, GitBranch,
   WalletCards,
+  ShieldAlert, ShieldCheck, ArrowRightLeft,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { ToastContainer, useToast } from './components/shared';
@@ -25,6 +26,9 @@ import { MaintenancePlanPage } from './pages/MaintenancePlanPage';
 import { LifecycleOverviewPage } from './pages/LifecycleOverviewPage';
 import { FinanceReportPage } from './pages/FinanceReportPage';
 import { BorrowReportPage } from './pages/BorrowReportPage';
+import { AssetDamagePage } from './pages/AssetDamagePage';
+import { AssetWarrantyPage } from './pages/AssetWarrantyPage';
+import { AssetTransferPage } from './pages/AssetTransferPage';
 import { getCurrentUserAsync, switchUser, resetDemoData } from './mock/api';
 import { SAMPLE_USERS } from './mock/constants';
 import { User } from './types';
@@ -44,6 +48,9 @@ const PAGE_TITLES: Record<string, string> = {
   'asset-history': '资产履历',
   'asset-inventory': '资产盘点',
   'asset-maintenance': '维保计划',
+  'asset-damage': '资产报损',
+  'asset-warranty': '资产保修',
+  'asset-transfer': '资产转移',
   'basic-category': '资产分类',
   'basic-area': '存放区域',
   'basic-supplier': '供应商管理',
@@ -106,6 +113,9 @@ export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ name, onBack
         { id: 'asset-history', label: '资产履历', icon: Clock },
         { id: 'asset-inventory', label: '资产盘点', icon: CheckSquare },
         { id: 'asset-maintenance', label: '维保计划', icon: Wrench },
+        { id: 'asset-damage', label: '资产报损', icon: ShieldAlert },
+        { id: 'asset-warranty', label: '资产保修', icon: ShieldCheck },
+        { id: 'asset-transfer', label: '资产转移', icon: ArrowRightLeft },
       ],
     },
     {
@@ -135,6 +145,9 @@ export const AssetManagerView: React.FC<AssetManagerViewProps> = ({ name, onBack
       case 'asset-history': return <AssetHistoryPage />;
       case 'asset-inventory': return <InventoryCheckPage showToast={showToast} />;
       case 'asset-maintenance': return <MaintenancePlanPage showToast={showToast} />;
+      case 'asset-damage': return <AssetDamagePage showToast={showToast} />;
+      case 'asset-warranty': return <AssetWarrantyPage showToast={showToast} />;
+      case 'asset-transfer': return <AssetTransferPage showToast={showToast} />;
       case 'basic-category': return <CategoryManagePage />;
       case 'basic-area': return <AreaManagePage />;
       case 'basic-supplier': return <SupplierManagePage showToast={showToast} />;
