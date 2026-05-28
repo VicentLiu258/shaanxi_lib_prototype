@@ -24,17 +24,28 @@ function loadDB(): MockDatabase {
   if (raw) {
     try {
       const parsed = JSON.parse(raw) as Partial<MockDatabase>;
+      const seeded = createInitialSeed();
+      const shouldBackfillNewModules = (parsed.version ?? 0) < 2;
       // Backward-compatible migration for old localStorage snapshots.
       db = {
-        ...createInitialSeed(),
+        ...seeded,
         ...parsed,
         purchases: parsed.purchases ?? [],
         inventory: parsed.inventory ?? [],
         scraps: parsed.scraps ?? [],
-        damages: parsed.damages ?? [],
-        warranties: parsed.warranties ?? [],
-        transfers: parsed.transfers ?? [],
+        damages: parsed.damages ?? (shouldBackfillNewModules ? seeded.damages : []),
+        warranties: parsed.warranties ?? (shouldBackfillNewModules ? seeded.warranties : []),
+        transfers: parsed.transfers ?? (shouldBackfillNewModules ? seeded.transfers : []),
+        version: Math.max(parsed.version ?? 1, 2),
       };
+
+      // If previous migration accidentally persisted empty arrays, backfill once.
+      if (shouldBackfillNewModules) {
+        if (!db.damages?.length) db.damages = seeded.damages;
+        if (!db.warranties?.length) db.warranties = seeded.warranties;
+        if (!db.transfers?.length) db.transfers = seeded.transfers;
+      }
+
       localStorage.setItem(MOCK_DATA_KEY, JSON.stringify(db));
       return db!;
     } catch { /* fall through */ }

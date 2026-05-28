@@ -248,38 +248,49 @@ export function buildScrapRecords(assets: Asset[]): ScrapRecord[] {
 }
 
 export function buildDamageRecords(assets: Asset[]): DamageRecord[] {
-  const pick = assets.filter(a => a.status !== '已报废').slice(3, 8);
+  const pick = assets.filter(a => a.status !== '已报废').slice(2, 14);
+  const reasons = ['外壳损坏', '精度异常', '关键部件磨损', '电路故障', '传感器失灵', '接口松动'];
+  const reporters = ['王教授', '张伟', '李研究员', '刘芳', '杨静'];
   return pick.map((a, i) => ({
     id: `DM-${i + 1}`,
     assetId: a.id,
     assetNo: a.assetNo,
     assetName: a.name,
-    reason: ['外壳损坏', '精度异常', '关键部件磨损', '电路故障'][i % 4],
-    reporter: ['王教授', '张伟', '李研究员'][i % 3],
-    reportDate: `2026-05-${String(10 + i).padStart(2, '0')}`,
-    status: i < 2 ? '待审批' : '已通过',
-    note: i % 2 === 0 ? '建议尽快处理' : undefined,
+    reason: reasons[i % reasons.length],
+    reporter: reporters[i % reporters.length],
+    reportDate: `2026-05-${String(4 + i).padStart(2, '0')}`,
+    status: i % 5 === 0 ? '已驳回' : (i % 3 === 0 ? '待审批' : '已通过'),
+    note: i % 2 === 0 ? '建议尽快处理，避免影响教学安排' : '已通知设备管理员复核',
   }));
 }
 
 export function buildWarrantyRecords(assets: Asset[]): WarrantyRecord[] {
-  const pick = assets.filter(a => a.status !== '已报废').slice(8, 13);
+  const pick = assets.filter(a => a.status !== '已报废').slice(6, 20);
+  const issues = ['启动失败', '温控异常', '数据采集中断', '噪音偏高', '显示屏闪烁', '电源不稳'];
+  const requesters = ['赵教授', '陈明', '杨静', '周杰', '吴敏'];
   return pick.map((a, i) => ({
     id: `WR-${i + 1}`,
     assetId: a.id,
     assetNo: a.assetNo,
     assetName: a.name,
-    issue: ['启动失败', '温控异常', '数据采集中断', '噪音偏高'][i % 4],
+    issue: issues[i % issues.length],
     vendor: a.supplierName || '原厂',
-    requester: ['赵教授', '陈明', '杨静'][i % 3],
-    requestDate: `2026-05-${String(5 + i).padStart(2, '0')}`,
-    status: i === 0 ? '维修中' : (i === 1 ? '已完成' : '待处理'),
-    note: i === 1 ? '已更换故障模块' : undefined,
+    requester: requesters[i % requesters.length],
+    requestDate: `2026-05-${String(2 + i).padStart(2, '0')}`,
+    status: i % 4 === 0 ? '已完成' : (i % 3 === 0 ? '维修中' : '待处理'),
+    note: i % 4 === 0 ? '已更换故障模块并校准' : (i % 3 === 0 ? '等待厂商上门维修' : '待受理'),
   }));
 }
 
 export function buildTransferRecords(assets: Asset[]): TransferRecord[] {
-  const pick = assets.filter(a => a.status === '在用' || a.status === '闲置').slice(0, 6);
+  const pick = assets.filter(a => a.status === '在用' || a.status === '闲置').slice(0, 14);
+  const targetLocations = [
+    { id: 'area_phy_f2_201', path: '陕西实验室/物理实验中心/2层/201室' },
+    { id: 'area_bio_f3_302', path: '陕西实验室/生物研发一馆/3层/302室' },
+    { id: 'area_bio_f3_305', path: '陕西实验室/生物研发一馆/3层/305室' },
+    { id: 'area_chem_f1_105', path: '陕西实验室/先进化学分析室/1层/105室' },
+  ];
+  const requesters = ['王强', '刘芳', '周杰', '郑强', '孙丽'];
   return pick.map((a, i) => ({
     id: `TR-${i + 1}`,
     assetId: a.id,
@@ -288,12 +299,12 @@ export function buildTransferRecords(assets: Asset[]): TransferRecord[] {
     fromDept: a.useDept,
     toDept: DEPARTMENTS[(i + 2) % DEPARTMENTS.length],
     fromLocation: a.locationPath,
-    toLocationId: 'area_phy_f2_201',
-    toLocationPath: '陕西实验室/物理实验中心/2层/201室',
-    requester: ['王强', '刘芳', '周杰'][i % 3],
-    requestDate: `2026-05-${String(12 + i).padStart(2, '0')}`,
-    status: i < 2 ? '待确认' : '已完成',
-    note: i % 2 ? '教学任务调整' : undefined,
+    toLocationId: targetLocations[i % targetLocations.length].id,
+    toLocationPath: targetLocations[i % targetLocations.length].path,
+    requester: requesters[i % requesters.length],
+    requestDate: `2026-05-${String(8 + i).padStart(2, '0')}`,
+    status: i % 6 === 0 ? '已取消' : (i % 3 === 0 ? '待确认' : '已完成'),
+    note: i % 2 ? '教学任务调整' : '实验室资源统筹',
   }));
 }
 

@@ -1,212 +1,237 @@
-
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
-import { 
-  Bell, 
-  Home, 
-  ChevronDown, 
-  ChevronUp, 
-  LayoutDashboard,
-  ShieldCheck,
-  Settings,
-  ShoppingCart,
-  HandHelping,
-  Layers,
-  ChevronRight,
-  ClipboardCheck,
-  Building2
+import {
+  Home, Bell, ChevronDown, ChevronRight, Monitor, BookOpen, Search,
+  ClipboardList, Menu, ChevronLeft, RotateCcw,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { HC_MENU, findMenuLabel } from './menu';
+import { getCurrentUserAsync, switchUser, getTodos, resetDemoData } from './mock/api';
+import { SAMPLE_HC_USERS } from './mock/constants';
+import { HcUser, TodoItem } from './types';
+import { ToastContainer, useToast } from './components/shared';
 
-interface MenuSubItem {
-  label: string;
-  path: string;
-}
-
-interface MenuItem {
-  icon: any;
-  label: string;
-  subItems: MenuSubItem[];
-}
+const ICON_MAP: Record<string, React.ElementType> = {
+  dashboard: Monitor,
+  chemicals: ClipboardList,
+  flow: BookOpen,
+  storage: Menu,
+  waste: RotateCcw,
+  risk: Bell,
+  training: BookOpen,
+  settings: Menu,
+};
 
 export const HCManageLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['危化品管理']);
+  const { toasts, showToast } = useToast();
+  const [expanded, setExpanded] = useState<string[]>(['chemicals', 'flow', 'storage']);
+  const [collapsed, setCollapsed] = useState(false);
+  const [user, setUser] = useState<HcUser | null>(null);
+  const [todos, setTodos] = useState<TodoItem[]>([]);
+  const [todoOpen, setTodoOpen] = useState(false);
+  const [searchKw, setSearchKw] = useState('');
+  const [userMenu, setUserMenu] = useState(false);
 
-  const menuData: MenuItem[] = [
-    {
-      icon: Layers,
-      label: '危化品管理',
-      subItems: [
-        { label: '入库审核', path: '/hc-manage/warehousing' },
-        { label: '危废物审核', path: '/hc-manage/waste' },
-        { label: '安全检查', path: '/hc-manage/security-check' },
-        { label: '基础信息', path: '/hc-manage/base-info' },
-      ]
-    },
-    {
-      icon: ShoppingCart,
-      label: '危化品采购',
-      subItems: [
-        { label: '采购审核', path: '/hc-manage/purchase' },
-      ]
-    },
-    {
-      icon: HandHelping,
-      label: '危化品领用',
-      subItems: [
-        { label: '领用审核', path: '/hc-manage/receive' },
-      ]
-    }
-  ];
+  const isScreen = location.pathname.includes('/screen');
+  const isTerminal = location.pathname.includes('/terminal-simulator');
 
-  const toggleMenu = (label: string) => {
-    setExpandedMenus(prev => 
-      prev.includes(label) ? prev.filter(m => m !== label) : [...prev, label]
-    );
+  useEffect(() => {
+    getCurrentUserAsync().then(setUser);
+    getTodos().then(setTodos);
+  }, []);
+
+  if (isScreen || isTerminal) {
+    return <Outlet />;
+  }
+
+  const breadcrumbs = findMenuLabel(location.pathname);
+
+  const toggle = (id: string) => {
+    setExpanded(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
   };
 
-  const getBreadcrumbs = () => {
-    const path = location.pathname;
-    if (path.includes('warehousing')) return ['危化品管理', '入库审核'];
-    if (path.includes('waste')) return ['危化品管理', '危废物审核'];
-    if (path.includes('security-check')) return ['危化品管理', '安全检查'];
-    if (path.includes('base-info')) return ['危化品管理', '基础信息'];
-    if (path.includes('purchase')) return ['危化品采购', '采购审核'];
-    if (path.includes('receive')) return ['危化品领用', '领用审核'];
-    if (path.includes('messages')) return ['系统消息'];
-    return ['首页'];
+  const handleSearch = () => {
+    if (!searchKw.trim()) return;
+    navigate(`/hc-manage/chemicals/catalog`);
+    showToast(`检索：${searchKw}`);
   };
-
-  const breadcrumbs = getBreadcrumbs();
 
   return (
-    <div className="flex flex-col h-screen bg-white">
-      {/* Header */}
-      <header className="h-16 bg-slate-900 flex items-center justify-between px-6 shrink-0 relative z-50 shadow-md">
+    <div className="flex flex-col h-screen bg-slate-50">
+      <ToastContainer toasts={toasts} />
+
+      {/* 主系统级顶栏：保留返回门户、用户、消息 */}
+      <header className="h-16 bg-[#1E3A8A] flex items-center justify-between px-6 shrink-0 shadow-md">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/20">HC</div>
-          <span className="text-lg font-bold text-white">危化品管理</span>
+          <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center text-white font-black text-sm">HC</div>
+          <div>
+            <span className="text-lg font-bold text-white">危化品全生命周期管理</span>
+            <p className="text-[10px] text-blue-200">陕西实验室综合管理平台 · 子系统</p>
+          </div>
         </div>
-
-        <div className="flex items-center gap-8">
-          <div 
-            onClick={() => navigate('/hc-manage/messages')}
-            className="relative cursor-pointer group"
-          >
-            <Bell size={22} className="text-slate-300 group-hover:text-blue-400 transition-colors" />
-            <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold ring-2 ring-slate-900">
-              20
-            </span>
+        <div className="flex items-center gap-6">
+          <button type="button" onClick={() => navigate('/hc-manage/screen')} className="hidden md:flex items-center gap-1 text-blue-100 hover:text-white text-sm">
+            <Monitor size={16} /> 监管大屏
+          </button>
+          <div className="relative">
+            <Bell size={20} className="text-blue-100 cursor-pointer" onClick={() => setTodoOpen(true)} />
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-[9px] text-white rounded-full flex items-center justify-center">{todos.length}</span>
           </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-slate-200">秦淮附属中学管理员</span>
-            <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden border border-slate-600">
-              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" alt="User" />
-            </div>
+          <div className="relative">
+            <button type="button" onClick={() => setUserMenu(!userMenu)} className="flex items-center gap-2 text-blue-100 text-sm">
+              <span>{user?.name || '加载中'}</span>
+              <ChevronDown size={14} />
+            </button>
+            {userMenu && (
+              <div className="absolute right-0 top-full mt-2 w-44 bg-white rounded-lg shadow-xl py-1 z-50 text-slate-800">
+                {SAMPLE_HC_USERS.map(u => (
+                  <button key={u.id} type="button" className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50" onClick={async () => {
+                    setUser(await switchUser(u.id));
+                    setUserMenu(false);
+                    showToast(`已切换为 ${u.name}`);
+                  }}>{u.name} · {u.role}</button>
+                ))}
+              </div>
+            )}
           </div>
-
-          <button 
-            onClick={() => navigate('/portal')}
-            className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
-          >
-            <Home size={18} />
-            <span className="text-sm font-medium">首页</span>
+          <button type="button" onClick={() => navigate('/portal')} className="flex items-center gap-1 text-blue-100 hover:text-white text-sm">
+            <Home size={16} /> 返回门户
           </button>
         </div>
       </header>
 
+      {/* 子系统 40px 辅助条 */}
+      <div className="h-10 bg-white border-b flex items-center justify-between px-6 text-sm shrink-0">
+        <div className="flex items-center gap-2 text-slate-600">
+          {breadcrumbs.map((c, i) => (
+            <React.Fragment key={c}>
+              {i > 0 && <ChevronRight size={12} />}
+              <span className={cn(i === breadcrumbs.length - 1 && 'text-slate-900 font-bold')}>{c}</span>
+            </React.Fragment>
+          ))}
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-slate-100 rounded-full px-3 py-1 gap-2">
+            <Search size={14} className="text-slate-400" />
+            <input
+              value={searchKw}
+              onChange={e => setSearchKw(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              placeholder="检索化学品/瓶码/库房"
+              className="bg-transparent border-none outline-none text-xs w-40"
+            />
+          </div>
+          <button type="button" onClick={() => setTodoOpen(true)} className="text-xs font-bold text-[#1E3A8A]">
+            待办（{todos.length}）
+          </button>
+          <button type="button" onClick={() => navigate('/hc-manage/screen')} className="text-xs text-slate-500 hover:text-blue-600 flex items-center gap-1">
+            <Monitor size={14} /> 大屏
+          </button>
+        </div>
+      </div>
+
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <aside className="w-[180px] bg-white border-r flex flex-col shrink-0 overflow-y-auto">
-          <nav className="py-4">
-            {menuData.map((item) => {
-              const isExpanded = expandedMenus.includes(item.label);
-              return (
-                <div key={item.label} className="mb-1">
-                  <button 
-                    onClick={() => toggleMenu(item.label)}
-                    className="w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-blue-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <item.icon size={18} className="text-slate-500" />
-                      <span className="text-sm font-bold">{item.label}</span>
-                    </div>
-                    {isExpanded ? <ChevronDown size={14} className="text-slate-500" /> : <ChevronRight size={14} className="text-slate-500" />}
-                  </button>
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden bg-gray-50/50"
-                      >
-                        {item.subItems.map((subItem) => {
-                          const isActive = location.pathname === subItem.path;
-                          return (
-                            <button
-                              key={subItem.path}
-                              onClick={() => navigate(subItem.path)}
-                              className={cn(
-                                "w-full text-left pl-12 py-2.5 text-sm transition-all relative",
-                                isActive 
-                                  ? "bg-blue-600 text-white font-medium shadow-sm" 
-                                  : "text-gray-500 hover:text-blue-600 hover:bg-blue-50"
-                              )}
-                            >
-                              {subItem.label}
-                              {isActive && (
-                                <motion.div 
-                                  layoutId="active-indicator"
-                                  className="absolute left-0 top-0 w-1 h-full bg-blue-700"
-                                />
-                              )}
-                            </button>
-                          );
-                        })}
-                      </motion.div>
+        <motion.aside animate={{ width: collapsed ? 56 : 220 }} className="bg-white border-r flex flex-col shrink-0 overflow-y-auto">
+          <nav className="py-3 px-2 space-y-0.5">
+            {HC_MENU.map(group => {
+              const Icon = ICON_MAP[group.id] || ClipboardList;
+              const hasChildren = !!group.children?.length;
+              const isExp = expanded.includes(group.id);
+              const isActive = group.path === location.pathname || group.children?.some(c => c.path === location.pathname);
+
+              if (group.path) {
+                return (
+                  <button
+                    key={group.id}
+                    type="button"
+                    onClick={() => navigate(group.path!)}
+                    className={cn(
+                      'w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold',
+                      location.pathname === group.path ? 'bg-[#1E3A8A] text-white' : 'text-slate-600 hover:bg-slate-100',
                     )}
-                  </AnimatePresence>
+                  >
+                    <Icon size={18} />
+                    {!collapsed && <span>{group.label}</span>}
+                  </button>
+                );
+              }
+
+              return (
+                <div key={group.id}>
+                  <button
+                    type="button"
+                    onClick={() => (hasChildren ? toggle(group.id) : null)}
+                    className={cn(
+                      'w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold',
+                      isActive ? 'text-[#1E3A8A] bg-blue-50' : 'text-slate-600 hover:bg-slate-100',
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icon size={18} />
+                      {!collapsed && <span>{group.label}</span>}
+                    </div>
+                    {!collapsed && hasChildren && <ChevronDown size={14} className={cn('transition-transform', isExp && 'rotate-180')} />}
+                  </button>
+                  {!collapsed && hasChildren && isExp && (
+                    <div className="ml-3 mt-0.5 border-l border-slate-200 pl-2">
+                      {group.children!.map(sub => (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => sub.path && navigate(sub.path)}
+                          className={cn(
+                            'w-full text-left px-3 py-2 rounded-lg text-xs font-medium',
+                            location.pathname === sub.path ? 'bg-[#1E3A8A] text-white' : 'text-slate-500 hover:text-blue-700',
+                          )}
+                        >
+                          {sub.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </nav>
-        </aside>
+          <button
+            type="button"
+            onClick={() => setCollapsed(!collapsed)}
+            className="m-2 p-2 border rounded-lg text-slate-400 hover:bg-slate-50"
+          >
+            {collapsed ? <Menu size={14} /> : <ChevronLeft size={14} />}
+          </button>
+        </motion.aside>
 
-        {/* Content Area */}
-        <main className="flex-1 bg-white overflow-y-auto">
-          <div className="p-6">
-            {/* Breadcrumbs */}
-            <div className="flex items-center gap-2 text-xs text-slate-600 mb-6">
-              {breadcrumbs.map((crumb, idx) => (
-                <React.Fragment key={idx}>
-                  <span className={cn(idx === breadcrumbs.length - 1 ? "text-slate-500" : "text-slate-700 font-bold")}>
-                    {crumb}
-                  </span>
-                  {idx < breadcrumbs.length - 1 && <ChevronRight size={12} className="text-slate-400" />}
-                </React.Fragment>
-              ))}
-            </div>
-
-            {/* View Title */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-1 h-6 bg-blue-600" />
-              <h2 className="text-2xl font-bold bg-clip-text text-gray-900 tracking-tight">
-                {breadcrumbs[breadcrumbs.length - 1]}
-              </h2>
-            </div>
-
-            {/* Main Content Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 min-h-[calc(100vh-250px)]">
-              <Outlet />
-            </div>
-          </div>
+        <main className="flex-1 overflow-y-auto p-4">
+          <Outlet context={{ showToast }} />
         </main>
       </div>
+
+      <AnimatePresence>
+        {todoOpen && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/30 z-40" onClick={() => setTodoOpen(false)} />
+            <motion.div
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+              className="fixed right-0 top-0 h-full w-80 bg-white shadow-xl z-50 p-4"
+            >
+              <h3 className="font-bold mb-4">业务待办</h3>
+              <ul className="space-y-3 text-sm">
+                {todos.map(t => (
+                  <li key={t.id} className="border-b pb-2">
+                    <p className="font-medium">{t.title}</p>
+                    <p className="text-xs text-slate-400">{t.module} · {t.time}</p>
+                  </li>
+                ))}
+              </ul>
+              <button type="button" className="mt-4 text-xs text-slate-500" onClick={async () => { await resetDemoData(); showToast('演示数据已重置'); }}>重置演示数据</button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
