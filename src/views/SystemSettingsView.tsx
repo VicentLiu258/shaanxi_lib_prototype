@@ -74,7 +74,7 @@ const MODULE_NAMES: Record<string, string> = {
   res: '实验教学资源',
   rem: '远程在线巡课',
   haz: '智慧危化品管理',
-  env: '环境监测预警',
+  env: '智慧物联',
   asset: '固定资产管理',
 };
 
@@ -113,7 +113,7 @@ const DEFAULT_SUBSYSTEMS = [
   { id: 'res', name: '实验教学资源', description: '标准化学案、AR实验课件、多媒体试题知识图谱。', defaultEnabled: true },
   { id: 'rem', name: '远程在线巡课', description: '多路低延迟直播级视频流，满足日常网格化教研督导。', defaultEnabled: true },
   { id: 'haz', name: '智慧危化品管理', description: '重点监管及剧毒、易制毒化学品双人双锁全周期追溯。', defaultEnabled: true },
-  { id: 'env', name: '环境监测预警', description: '一氧化碳、氧含量、漏水及挥发性有机物二十四小时红外探测。', defaultEnabled: true },
+  { id: 'env', name: '智慧物联', description: '实验室智能设备物联控制、环境传感监测与联动预警一体化管理。', defaultEnabled: true },
   { id: 'asset', name: '固定资产管理', description: '高价值折旧计算、国资产权变更与仪器寿命演变追溯。', defaultEnabled: true },
 ];
 

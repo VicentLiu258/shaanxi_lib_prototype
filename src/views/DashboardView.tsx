@@ -94,7 +94,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onBack, onLogout }
 
           <div className="mt-8 px-6 py-2 text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-2">后续子系统入口</div>
           <div className="grid grid-cols-2 gap-2 px-4">
-            {['危化品管理', '环境监测', '耗材库房', '人员考评'].map((label) => (
+            {['危化品管理', '智慧物联', '耗材库房', '人员考评'].map((label) => (
               <div key={label} className="bg-white/5 p-3 rounded-lg text-[10px] text-slate-300 hover:bg-white/10 cursor-pointer border border-white/5 text-center transition-all">
                 {label}
               </div>

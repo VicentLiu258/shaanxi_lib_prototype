@@ -26,6 +26,7 @@ import { AlertPage } from './pages/AlertPage';
 
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { StorageOverviewPage } from './pages/StorageOverviewPage';
+import { ComplianceControl } from './ComprehensiveModules';
 
 import {
 
@@ -173,7 +174,21 @@ export const HCManageView: React.FC = () => {
 
         <Route path="settings/log" element={<PlaceholderPage demoId="settings-log" title="操作日志" description="子系统内业务动作审计日志。" columns={['操作人', '模块', '动作', '结果', '时间']} fetchRows={async () => (await getOperationLogs()).map(l => ({ 操作人: l.operator, 模块: l.module, 动作: l.action, 结果: l.result, 时间: l.time }))} />} />
 
+        <Route path="settings/compliance" element={<ComplianceControl />} />
 
+
+
+        <Route path="overview" element={<Navigate to="/hc-manage/dashboard" replace />} />
+
+        <Route path="devices" element={<Navigate to="/hc-manage/storage/devices" replace />} />
+
+        <Route path="inventory" element={<Navigate to="/hc-manage/storage/overview" replace />} />
+
+        <Route path="reagents" element={<Navigate to="/hc-manage/chemicals/catalog" replace />} />
+
+        <Route path="approvals" element={<Navigate to="/hc-manage/settings/approval-template" replace />} />
+
+        <Route path="compliance" element={<Navigate to="/hc-manage/settings/compliance" replace />} />
 
         <Route path="warehousing" element={<Navigate to="/hc-manage/flow/inbound" replace />} />
 
@@ -200,4 +215,3 @@ export const HCManageView: React.FC = () => {
 
 
 export default HCManageView;
-

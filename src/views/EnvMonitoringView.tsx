@@ -32,6 +32,7 @@ import {
   TrendingUp,
   LineChart,
   Grid,
+  LayoutGrid,
   Filter,
   CheckCircle,
   ArrowRight,
@@ -39,6 +40,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../components/ThemeContext';
 import { cn } from '../lib/utils';
+import { IoTControlPanel } from './SmartIoT/IoTControlPanel';
 
 // --- Types & Interfaces ---
 interface LabInfo {
@@ -203,8 +205,8 @@ export const EnvMonitoringView: React.FC<EnvMonitoringViewProps> = ({ onBack, on
   const { theme, toggleTheme } = useTheme();
 
   // --- Sub-menu Navigation ---
-  // Menu options: 'overview' | 'live' | 'warn' | 'event' | 'config'
-  const [activeTab, setActiveTab] = useState<'overview' | 'live' | 'warn' | 'event' | 'config'>('overview');
+  type EnvTab = 'control' | 'overview' | 'live' | 'warn' | 'event' | 'config';
+  const [activeTab, setActiveTab] = useState<EnvTab>('control');
 
   // --- States ---
   const [labs, setLabs] = useState<LabInfo[]>(initialLabs);
@@ -474,7 +476,7 @@ export const EnvMonitoringView: React.FC<EnvMonitoringViewProps> = ({ onBack, on
               <div className="p-1 rounded bg-[#01cfd8]/25 text-[#01cfd8]">
                 <Activity size={20} className="animate-pulse" />
               </div>
-              <span className="font-extrabold text-[15px] tracking-wide">环境监测预警</span>
+              <span className="font-extrabold text-[15px] tracking-wide">智慧物联</span>
             </div>
             <p className="text-[10px] text-[#8cb2b5] font-medium uppercase font-mono tracking-wider">Salt Middle School</p>
           </div>
@@ -493,6 +495,7 @@ export const EnvMonitoringView: React.FC<EnvMonitoringViewProps> = ({ onBack, on
           {/* Nav elements */}
           <nav className="px-2 space-y-1">
             {[
+              { id: 'control', label: '物联控制', icon: LayoutGrid },
               { id: 'overview', label: '环境总览', icon: LayoutDashboard },
               { id: 'live', label: '实时监测', icon: Thermometer },
               { id: 'warn', label: '预警中心', icon: ShieldAlert },
@@ -504,7 +507,7 @@ export const EnvMonitoringView: React.FC<EnvMonitoringViewProps> = ({ onBack, on
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id as any)}
+                  onClick={() => setActiveTab(item.id as EnvTab)}
                   className={cn(
                     "w-full flex items-center gap-3 px-3.5 py-3 rounded-lg text-left text-xs font-semibold tracking-wide transition-all duration-150 relative cursor-pointer",
                     isSelected 
@@ -554,17 +557,29 @@ export const EnvMonitoringView: React.FC<EnvMonitoringViewProps> = ({ onBack, on
       <div className="flex-1 flex flex-col overflow-hidden">
         
         {/* 2.1 TOP HEADER BAR */}
-        <header className="h-16 bg-white dark:bg-[#121110] border-b border-slate-205 dark:border-white/10 flex items-center justify-between px-6 shrink-0 transition-colors z-10 shadow-sm">
+        <header className={cn(
+          "h-16 border-b flex items-center justify-between px-6 shrink-0 transition-colors z-10 shadow-sm",
+          activeTab === 'control'
+            ? "bg-[#151b26] border-white/10 text-zinc-300"
+            : "bg-white dark:bg-[#121110] border-slate-205 dark:border-white/10"
+        )}>
           {/* Breadcrumbs */}
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-zinc-400">
-            <span>环境监控</span>
+          <div className={cn(
+            "flex items-center gap-2 text-xs font-medium",
+            activeTab === 'control' ? "text-zinc-400" : "text-slate-500 dark:text-zinc-400"
+          )}>
+            <span>智慧物联</span>
             <ChevronRight size={12} />
-            <span className="text-[#01696f] dark:text-[#01cfd8] font-bold font-sans">
-              {activeTab === 'overview' && '🖥️ 环境总览'}
-              {activeTab === 'live' && `🌡️ 实时监控 / ${selectedLabName}`}
-              {activeTab === 'warn' && '🚨 预警排查响应中心'}
-              {activeTab === 'event' && '🧾 现场审计日志时间线'}
-              {activeTab === 'config' && '⚙️ 硬件报警阈值参数设定'}
+            <span className={cn(
+              "font-bold font-sans",
+              activeTab === 'control' ? "text-cyan-400" : "text-[#01696f] dark:text-[#01cfd8]"
+            )}>
+              {activeTab === 'control' && '物联控制'}
+              {activeTab === 'overview' && '环境总览'}
+              {activeTab === 'live' && `实时监测 / ${selectedLabName}`}
+              {activeTab === 'warn' && '预警排查响应中心'}
+              {activeTab === 'event' && '现场审计日志时间线'}
+              {activeTab === 'config' && '硬件报警阈值参数设定'}
             </span>
           </div>
 
@@ -627,8 +642,15 @@ export const EnvMonitoringView: React.FC<EnvMonitoringViewProps> = ({ onBack, on
         </header>
 
         {/* 2.2 MAIN CONTENT SCENE VIEWPORT */}
-        <main className="flex-1 overflow-y-auto p-5 relative">
+        <main className={cn(
+          "flex-1 overflow-hidden relative flex flex-col min-h-0",
+          activeTab !== 'control' && "overflow-y-auto p-5"
+        )}>
           
+          {activeTab === 'control' && (
+            <IoTControlPanel labDevices={devices} onToast={addToast} />
+          )}
+
           <AnimatePresence mode="wait">
             
             {/* ========================================= */}

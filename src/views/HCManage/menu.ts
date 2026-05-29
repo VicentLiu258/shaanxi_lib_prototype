@@ -69,6 +69,7 @@ export const HC_MENU: MenuItem[] = [
     children: [
       { id: 'approval-template', label: '审批模板', path: '/hc-manage/settings/approval-template' },
       { id: 'dict', label: '业务字典', path: '/hc-manage/settings/dict' },
+      { id: 'compliance', label: '合规与审计策略', path: '/hc-manage/settings/compliance' },
       { id: 'log', label: '操作日志', path: '/hc-manage/settings/log' },
     ],
   },

@@ -9,7 +9,7 @@ import {
   FlaskConical, 
   Video, 
   Flame, 
-  ShieldAlert, 
+  Wifi, 
   Warehouse,
   ChevronRight,
   Database,
@@ -37,7 +37,7 @@ const systems = [
   { id: 'res', name: '实验教学资源', sub: 'RESOURCES', icon: FlaskConical, color: 'bg-sky-500' },
   { id: 'rem', name: '远程在线巡课', sub: 'REMOTE INSPECTION', icon: Video, color: 'bg-rose-500' },
   { id: 'haz', name: '智慧危化品管理', sub: 'CHEMICAL MGMT', icon: Flame, color: 'bg-orange-500' },
-  { id: 'env', name: '环境监测预警', sub: 'ENVIRONMENTAL', icon: ShieldAlert, color: 'bg-cyan-500' },
+  { id: 'env', name: '智慧物联', sub: 'SMART IoT', icon: Wifi, color: 'bg-cyan-500' },
   { id: 'asset', name: '固定资产管理', sub: 'ASSET MGMT', icon: Warehouse, color: 'bg-slate-500' },
 ];
 

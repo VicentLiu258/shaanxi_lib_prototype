@@ -12,7 +12,8 @@ import {
   Maximize2,
   Calendar,
   Layers,
-  Search
+  Search,
+  Home
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
@@ -23,9 +24,10 @@ dayjs.locale('zh-cn');
 
 interface DataCenterLayoutProps {
   children: React.ReactNode;
+  onBack?: () => void;
 }
 
-export const DataCenterLayout: React.FC<DataCenterLayoutProps> = ({ children }) => {
+export const DataCenterLayout: React.FC<DataCenterLayoutProps> = ({ children, onBack }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [currentTime, setCurrentTime] = useState(dayjs());
   const [activeTabs, setActiveTabs] = useState<{ name: string; path: string }[]>([
@@ -135,6 +137,20 @@ export const DataCenterLayout: React.FC<DataCenterLayoutProps> = ({ children }) 
           ))}
         </div>
 
+        {onBack && (
+          <button
+            onClick={onBack}
+            title="返回系统门户"
+            className={cn(
+              "flex items-center gap-2 mx-3 mb-2 py-2.5 rounded-lg border border-[#0d3a6e]/50 text-slate-400 hover:text-[#00c8ff] hover:bg-[#00c8ff]/10 transition-all shrink-0",
+              collapsed ? "justify-center px-0" : "px-4"
+            )}
+          >
+            <Home size={18} className="shrink-0" />
+            {!collapsed && <span className="text-sm font-bold">返回首页</span>}
+          </button>
+        )}
+
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="h-12 border-t border-[#0d3a6e]/50 flex items-center justify-center text-slate-500 hover:text-white transition-colors"
@@ -156,6 +172,19 @@ export const DataCenterLayout: React.FC<DataCenterLayoutProps> = ({ children }) 
             </div>
             
             <div className="h-6 w-px bg-[#0d3a6e] mx-4 hidden md:block" />
+
+            {onBack && (
+              <button
+                onClick={onBack}
+                title="返回系统门户"
+                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-[#00c8ff] hover:bg-[#00c8ff]/10 transition-all text-xs font-bold shrink-0"
+              >
+                <Home size={16} />
+                返回首页
+              </button>
+            )}
+
+            <div className="h-6 w-px bg-[#0d3a6e] mx-2 hidden md:block" />
             
             {/* Tabs */}
             <div className="flex items-center gap-1 flex-1 overflow-x-auto scrollbar-hide">

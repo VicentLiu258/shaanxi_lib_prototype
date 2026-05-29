@@ -31,7 +31,7 @@ function SubsystemRoute({ onBack, onLogout }: { onBack: () => void; onLogout: ()
     'res': '实验教学资源',
     'rem': '远程在线巡课',
     'haz': '智慧危化品管理',
-    'env': '环境监测预警',
+    'env': '智慧物联',
     'asset': '固定资产管理'
   };
 
@@ -102,7 +102,7 @@ export default function App() {
                     'res': '实验教学资源',
                     'rem': '远程在线巡课',
                     'haz': '智慧危化品管理',
-                    'env': '环境监测预警',
+                    'env': '智慧物联',
                     'asset': '固定资产管理'
                   };
                   handlePortalSelect(id, names[id] || '未知子系统');

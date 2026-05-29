@@ -12,7 +12,7 @@ export const DataCenterView: React.FC<DataCenterViewProps> = ({ onBack }) => {
   const location = useLocation();
 
   return (
-    <DataCenterLayout>
+    <DataCenterLayout onBack={onBack}>
       {location.pathname === '/dashboard' ? <SchoolDashboard /> : <LaboratoryDashboard />}
     </DataCenterLayout>
   );
