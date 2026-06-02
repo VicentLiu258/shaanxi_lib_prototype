@@ -31,6 +31,7 @@ export const HC_MENU: MenuItem[] = [
     id: 'storage', label: '智能库房',
     children: [
       { id: 'overview', label: '库房总览', path: '/hc-manage/storage/overview' },
+      { id: 'consumables', label: '耗材库存清单', path: '/hc-manage/storage/consumables' },
       { id: 'cabinets', label: '智能存储终端', path: '/hc-manage/storage/cabinets' },
       { id: 'stocktake', label: '实时盘点', path: '/hc-manage/storage/stocktake' },
       { id: 'devices', label: '设备物联状态', path: '/hc-manage/storage/devices' },

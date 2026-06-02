@@ -57,6 +57,10 @@ export const STATUS_COLORS: Record<string, string> = {
   '在线': 'bg-emerald-100 text-emerald-700',
   '离线': 'bg-slate-100 text-slate-600',
   '报警': 'bg-red-100 text-red-700',
+  '正常': 'bg-emerald-100 text-emerald-700',
+  '低库存': 'bg-amber-100 text-amber-700',
+  '临期': 'bg-orange-100 text-orange-700',
+  '已过期': 'bg-red-100 text-red-700',
 };
 
 export const FAKE_DELAY = () => 200 + Math.floor(Math.random() * 200);

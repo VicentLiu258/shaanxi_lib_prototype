@@ -81,7 +81,7 @@ export const AssetBorrowReport: React.FC = () => {
                   <YAxis 
                      axisLine={false} 
                      tickLine={false} 
-                     tick={{ fontSize: 10, fontMono: true, fontWeight: 700, fill: '#94A3B8' }}
+                     tick={{ fontSize: 10, fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, fill: '#94A3B8' }}
                   />
                   <Tooltip 
                      contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '20px' }}

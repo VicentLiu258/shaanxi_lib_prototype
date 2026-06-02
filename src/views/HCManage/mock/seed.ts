@@ -4,6 +4,7 @@ import {
   TransferOrder, DiscardItem, StocktakeDiff, HazardTicket, VisionEvent,
   EmergencyPlan, TrainingAccessRecord, CourseItem, ExamPaper, CertRecord,
   ApprovalTemplate, DictEntry, OperationLogEntry, WasteTransferSlip, HazardMapLink,
+  ConsumableInventoryItem, ReagentOperationRecord,
 } from '../types';
 import {
   COLLEGES, SAMPLE_NAMES, CHEMICAL_SAMPLES, HAZARD_CATEGORIES, CONTROL_LEVELS,
@@ -11,6 +12,11 @@ import {
 } from './constants';
 
 function pick<T>(arr: T[], i: number) { return arr[i % arr.length]; }
+
+function parseNominalVolume(spec: string): number {
+  const match = spec.match(/\d+/);
+  return match ? Number(match[0]) : 500;
+}
 
 export function buildChemicals(): ChemicalCatalog[] {
   const list: ChemicalCatalog[] = CHEMICAL_SAMPLES.map((c, i) => ({
@@ -48,21 +54,121 @@ export function buildChemicals(): ChemicalCatalog[] {
 export function buildBottles(chemicals: ChemicalCatalog[]): BottleRecord[] {
   return Array.from({ length: 120 }, (_, i) => {
     const chem = chemicals[i % chemicals.length];
+    const spec = `${(i % 5 + 1) * 100}ml/瓶`;
+    const nominal = parseNominalVolume(spec);
+    const initialWeight = nominal + 86 + (i % 6) * 4;
+    const status = pick(BOTTLE_STATUSES, i);
+    const currentWeight = status === '已用完'
+      ? 0
+      : status === '领用中'
+        ? Math.max(18, initialWeight - 70 - (i % 9) * 8)
+        : status === '已报废'
+          ? Math.max(0, initialWeight - 120 - (i % 7) * 12)
+          : initialWeight - (i % 5) * 6;
     return {
       id: `bottle-${i + 1}`,
       code: `LC-2026-${String(i + 1).padStart(6, '0')}`,
       chemicalId: chem.id,
       chemicalName: chem.nameCn,
-      spec: `${(i % 5 + 1) * 100}ml/瓶`,
-      status: pick(BOTTLE_STATUSES, i),
+      spec,
+      status,
       warehouse: `LH-A${String((i % 8) + 1).padStart(2, '0')}`,
       cabinet: `柜-${(i % 6) + 1}`,
       layer: `第${(i % 4) + 1}层`,
       owner: pick(SAMPLE_NAMES, i),
       inboundDate: `2026-0${(i % 4) + 1}-${String((i % 28) + 1).padStart(2, '0')}`,
       lastOpTime: `2026-05-${String((i % 20) + 1).padStart(2, '0')} ${10 + (i % 8)}:00`,
+      initialWeight,
+      currentWeight,
+      weightUnit: 'g',
+      lastBorrowWeight: status === '领用中' ? currentWeight : undefined,
+      lastReturnWeight: status === '在库' ? currentWeight : undefined,
     };
   });
+}
+
+export function buildConsumables(): ConsumableInventoryItem[] {
+  const manufacturers = [
+    '上海安谱实验科技股份有限公司',
+    '苏州赛默飞实验耗材有限公司',
+    '广州洁特生物过滤股份有限公司',
+    '南京晚晴化玻仪器有限公司',
+    '天津科密欧化学试剂有限公司',
+    '北京陆桥技术股份有限公司',
+  ];
+  const suppliers = ['陕西秦科实验器材有限公司', '西安华仪科教设备有限公司', '咸阳诚达实验用品服务部'];
+  const brands = ['ANPEL', 'Thermo Fisher', 'JET Biofil', '科密欧', '陆桥', 'HuaYi Lab'];
+  const storageConditions = ['常温、避光、干燥保存', '洁净干燥处密封保存', '阴凉通风、远离火源热源', '无菌耗材区独立存放'];
+  const rows = [
+    ['一次性乳胶手套', 'HC-2026-0001', 'M号/100只/盒', '化学楼 201 · 耗材柜 A1', 86, '盒', 30, '2026-05-02 09:20', '2026-04-16', '2028-04-15'],
+    ['丁腈手套', 'HC-2026-0002', 'L号/100只/盒', '化学楼 201 · 耗材柜 A2', 18, '盒', 25, '2026-05-08 10:12', '2026-04-20', '2028-04-19'],
+    ['护目镜', 'HC-2026-0003', '防雾型/10副/箱', '化学楼 102 · 防护柜 B1', 42, '副', 20, '2026-04-18 14:00', '2026-03-30', '2030-03-29'],
+    ['一次性滴管', 'HC-2026-0004', '3ml/500支/包', '实验楼 2 · 201 室 · 柜-2', 260, '包', 80, '2026-05-11 11:30', '2026-04-28', '2029-04-27'],
+    ['定性滤纸', 'HC-2026-0005', '12.5cm/100张/盒', '实验楼 2 · 202 室 · 柜-1', 16, '盒', 15, '2026-03-15 08:45', '2026-02-20', '2028-02-19'],
+    ['pH 试纸', 'HC-2026-0006', '1-14/80条/本', '化学楼 301 · 试剂准备台', 9, '本', 20, '2026-05-09 16:10', '2026-01-08', '2027-01-07'],
+    ['离心管', 'HC-2026-0007', '15ml/50支/袋', '生物楼 105 · 低温耗材柜', 58, '袋', 40, '2026-04-25 13:20', '2026-04-01', '2028-03-31'],
+    ['多孔培养板', 'HC-2026-0008', '96孔/平底/10块/包', '生物楼 108 · 无菌耗材架', 33, '包', 20, '2026-05-13 09:50', '2026-04-25', '2027-07-25'],
+    ['移液枪吸头', 'HC-2026-0009', '200ul/1000支/盒', '化学楼 204 · 耗材柜 C1', 74, '盒', 35, '2026-05-16 15:28', '2026-05-01', '2029-04-30'],
+    ['广口试剂瓶', 'HC-2026-0010', '250ml/24只/箱', '库房 LH-A03 · 货架 02', 12, '箱', 10, '2026-02-22 10:08', '2025-12-16', '2026-06-20'],
+    ['封口膜', 'HC-2026-0011', '10cm×38m/卷', '化学楼 201 · 耗材柜 A3', 7, '卷', 12, '2026-01-20 09:36', '2025-10-12', '2026-06-10'],
+    ['称量纸', 'HC-2026-0012', '100×100mm/500张/包', '化学楼 201 · 天平室', 45, '包', 15, '2026-05-17 14:42', '2026-04-22', '2028-04-21'],
+  ] as const;
+
+  return rows.map((r, i) => {
+    const expiry = new Date(r[9]).getTime();
+    const now = new Date('2026-06-01').getTime();
+    const daysLeft = Math.ceil((expiry - now) / 86400000);
+    const status = daysLeft < 0
+      ? '已过期'
+      : daysLeft <= 30
+        ? '临期'
+        : r[4] < r[6]
+          ? '低库存'
+          : '正常';
+    return {
+      id: `cons-${i + 1}`,
+      name: r[0],
+      code: r[1],
+      packageSpec: r[2],
+      location: r[3],
+      stockQty: r[4],
+      unit: r[5],
+      safeStock: r[6],
+      inboundTime: r[7],
+      productionDate: r[8],
+      expiryDate: r[9],
+      status,
+      manufacturer: pick(manufacturers, i),
+      brand: pick(brands, i),
+      supplier: pick(suppliers, i),
+      purchaseTime: `2026-04-${String(8 + (i % 18)).padStart(2, '0')} 10:${String(10 + i).padStart(2, '0')}`,
+      purchaseOrderNo: `CG-2026-${String(180 + i).padStart(4, '0')}`,
+      batchNo: `B${r[8].replaceAll('-', '')}-${String(i + 1).padStart(3, '0')}`,
+      buyer: pick(['李娜', '王浩', '张明', '陈雪'], i),
+      acceptancePerson: pick(['赵强', '孙琳', '周晨', '吴博'], i),
+      storageCondition: pick(storageConditions, i),
+      material: i % 3 === 0 ? '高分子聚合材料' : i % 3 === 1 ? '实验级塑料/纸基材料' : '玻璃或复合防护材料',
+      application: `${r[0]}用于日常实验准备、教学演示和危化品领用过程中的安全防护或辅助操作。`,
+      introduction: `${r[0]}为学校实验室常备耗材，已完成采购验收、批次备案和库存上架。系统记录厂家、供应商、批号、有效期和安全库存，用于领用备货、低量预警和追溯审计。`,
+      remarks: r[4] < r[6] ? '库存低于安全库存，建议补货。' : status === '临期' ? '有效期临近，建议优先领用。' : '状态正常，按库位定置存放。',
+    };
+  });
+}
+
+export function buildReagentOperations(bottles: BottleRecord[]): ReagentOperationRecord[] {
+  return bottles.slice(0, 12).map((b, i) => ({
+    id: `ro-${i + 1}`,
+    type: i % 2 === 0 ? '领用' : '归还',
+    batchNo: `TERM-202605${String(i + 1).padStart(3, '0')}`,
+    bottleCode: b.code,
+    chemicalName: b.chemicalName,
+    operator: pick(SAMPLE_NAMES, i),
+    previousWeight: b.initialWeight,
+    measuredWeight: b.currentWeight,
+    weightDelta: Number((b.currentWeight - b.initialWeight).toFixed(1)),
+    resultStatus: b.status,
+    time: `2026-05-${String((i % 20) + 1).padStart(2, '0')} ${9 + (i % 8)}:${String(12 + i).padStart(2, '0')}`,
+  }));
 }
 
 export function buildPurchases(): PurchaseOrder[] {
@@ -342,6 +448,8 @@ export interface HcMockStore {
   operationLogs: OperationLogEntry[];
   wasteTransfers: WasteTransferSlip[];
   hazardMapLinks: HazardMapLink[];
+  consumables: ConsumableInventoryItem[];
+  reagentOperations: ReagentOperationRecord[];
 }
 
 export function createInitialStore(): HcMockStore {
@@ -373,5 +481,7 @@ export function createInitialStore(): HcMockStore {
     operationLogs: buildOperationLogs(),
     wasteTransfers: buildWasteTransfers(),
     hazardMapLinks: buildHazardMapLinks(),
+    consumables: buildConsumables(),
+    reagentOperations: buildReagentOperations(bottles),
   };
 }

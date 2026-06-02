@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   LayoutDashboard, 
@@ -71,6 +72,7 @@ interface InstrumentManagerViewProps {
 }
 
 export const InstrumentManagerView: React.FC<InstrumentManagerViewProps> = ({ onBack, onLogout }) => {
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['instruments', 'consumables']);
@@ -118,15 +120,8 @@ export const InstrumentManagerView: React.FC<InstrumentManagerViewProps> = ({ on
       label: '耗材模块',
       icon: Package,
       subItems: [
-        { id: 'cons-stock', label: '耗材库存' },
-        { id: 'cons-list', label: '耗材清单' },
-        { id: 'cons-entry', label: '耗材入库' },
-        { id: 'cons-ledger', label: '耗材台账' },
-        { id: 'cons-std', label: '耗材标准品库' },
-        { id: 'cons-claim', label: '耗材领用' },
-        { id: 'cons-return', label: '耗材退还' },
-        { id: 'cons-disposal', label: '耗材处置' },
-        { id: 'cons-transfer', label: '耗材转移' },
+        { id: 'cons-stock', label: '耗材库存清单' },
+        { id: 'cons-claim', label: '危化品领用归还' },
       ]
     },
     {
@@ -337,15 +332,26 @@ export const InstrumentManagerView: React.FC<InstrumentManagerViewProps> = ({ on
                 {activeMenu === 'instr-logs' && <SystemLog key="instr-logs" />}
                 
                 {/* Consumables */}
-                {activeMenu === 'cons-stock' && <ConsumableStock key="cons-stock" />}
-                {activeMenu === 'cons-list' && <ConsumableList key="cons-list" />}
-                {activeMenu === 'cons-entry' && <ConsumableWarehousing key="cons-entry" />}
-                {activeMenu === 'cons-ledger' && <ConsumableLedger key="cons-ledger" />}
-                {activeMenu === 'cons-std' && <ConsumableStandard key="cons-std" />}
-                {activeMenu === 'cons-claim' && <ConsumableReceipt key="cons-claim" />}
-                {activeMenu === 'cons-return' && <ConsumableRevert key="cons-return" />}
-                {activeMenu === 'cons-disposal' && <ConsumableDispose key="cons-disposal" />}
-                {activeMenu === 'cons-transfer' && <InstrumentMigration key="cons-transfer" />}
+                {activeMenu === 'cons-stock' && (
+                  <ConsumableMergedNotice
+                    key="cons-stock"
+                    title="耗材库存清单已并入危化品"
+                    description="库存与清单统一在危化品子系统维护，字段包含编码、包装规格、位置、库存、安全库存、入库时间、生成日期、有效期和状态。"
+                    primaryLabel="进入耗材库存清单"
+                    onPrimary={() => navigate('/hc-manage/storage/consumables')}
+                  />
+                )}
+                {activeMenu === 'cons-claim' && (
+                  <ConsumableMergedNotice
+                    key="cons-claim"
+                    title="领用归还已并入危化品桌面终端"
+                    description="试剂现场领用按桌面终端模式处理：逐件扫码称重，形成待处理清单，最后统一借出或归还并自动核销。"
+                    primaryLabel="进入领用归还"
+                    onPrimary={() => navigate('/hc-manage/flow/borrow')}
+                    secondaryLabel="打开桌面终端"
+                    onSecondary={() => navigate('/hc-manage/terminal-simulator')}
+                  />
+                )}
 
                 {/* Inventory */}
                 {activeMenu === 'inv-plan' && <InventoryTask key="inv-plan" />}
@@ -368,7 +374,7 @@ export const InstrumentManagerView: React.FC<InstrumentManagerViewProps> = ({ on
                 {activeMenu === 'rep-dept' && <DeptStatistics key="rep-dept" />}
                 
                 {/* Fallback for other modules */}
-                {!['dashboard', 'vis-dept', 'vis-global', 'instr-stock', 'instr-list', 'instr-entry', 'instr-std', 'instr-borrow', 'instr-return', 'instr-disposal', 'instr-repair', 'instr-plan', 'instr-maint', 'instr-transfer', 'instr-reserve', 'instr-flow', 'instr-logs', 'cons-stock', 'cons-list', 'cons-entry', 'cons-ledger', 'cons-std', 'cons-claim', 'cons-return', 'cons-disposal', 'cons-transfer', 'inv-plan', 'inv-daily', 'inv-exec', 'proc-apply', 'proc-order', 'proc-vendor', 'rep-types', 'rep-status', 'rep-org', 'rep-usage', 'rep-personal', 'rep-add', 'rep-dispose', 'rep-dept'].includes(activeMenu) && (
+                {!['dashboard', 'vis-dept', 'vis-global', 'instr-stock', 'instr-list', 'instr-entry', 'instr-std', 'instr-borrow', 'instr-return', 'instr-disposal', 'instr-repair', 'instr-plan', 'instr-maint', 'instr-transfer', 'instr-reserve', 'instr-flow', 'instr-logs', 'cons-stock', 'cons-claim', 'inv-plan', 'inv-daily', 'inv-exec', 'proc-apply', 'proc-order', 'proc-vendor', 'rep-types', 'rep-status', 'rep-org', 'rep-usage', 'rep-personal', 'rep-add', 'rep-dispose', 'rep-dept'].includes(activeMenu) && (
                  <motion.div 
                    key="other"
                    initial={{ opacity: 0, y: 10 }}
@@ -401,3 +407,55 @@ export const InstrumentManagerView: React.FC<InstrumentManagerViewProps> = ({ on
     </div>
   );
 };
+
+function ConsumableMergedNotice({
+  title,
+  description,
+  primaryLabel,
+  onPrimary,
+  secondaryLabel,
+  onSecondary,
+}: {
+  title: string;
+  description: string;
+  primaryLabel: string;
+  onPrimary: () => void;
+  secondaryLabel?: string;
+  onSecondary?: () => void;
+}) {
+  return (
+    <motion.div
+      key={title}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="p-8"
+    >
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 min-h-[420px] flex flex-col items-center justify-center text-center">
+        <div className="w-16 h-16 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center mb-6">
+          <ShieldCheck size={30} />
+        </div>
+        <h2 className="text-2xl font-black text-slate-900 mb-3">{title}</h2>
+        <p className="text-sm text-slate-500 max-w-xl leading-7">{description}</p>
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
+          <button
+            type="button"
+            onClick={onPrimary}
+            className="px-6 py-3 bg-[#1B6BE5] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:shadow-lg hover:shadow-blue-500/20 transition-all"
+          >
+            {primaryLabel}
+          </button>
+          {secondaryLabel && onSecondary && (
+            <button
+              type="button"
+              onClick={onSecondary}
+              className="px-6 py-3 border border-slate-200 text-slate-600 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all"
+            >
+              {secondaryLabel}
+            </button>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}

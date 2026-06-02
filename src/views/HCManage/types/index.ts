@@ -33,6 +33,68 @@ export interface BottleRecord {
   owner: string;
   inboundDate: string;
   lastOpTime: string;
+  initialWeight: number;
+  currentWeight: number;
+  weightUnit: 'g';
+  lastBorrowWeight?: number;
+  lastReturnWeight?: number;
+}
+
+export type ConsumableStatus = '正常' | '低库存' | '临期' | '已过期';
+
+export interface ConsumableInventoryItem {
+  id: string;
+  name: string;
+  code: string;
+  packageSpec: string;
+  location: string;
+  stockQty: number;
+  unit: string;
+  safeStock: number;
+  inboundTime: string;
+  productionDate: string;
+  expiryDate: string;
+  status: ConsumableStatus;
+  manufacturer: string;
+  brand: string;
+  supplier: string;
+  purchaseTime: string;
+  purchaseOrderNo: string;
+  batchNo: string;
+  buyer: string;
+  acceptancePerson: string;
+  storageCondition: string;
+  material: string;
+  application: string;
+  introduction: string;
+  remarks: string;
+}
+
+export type TerminalMode = 'borrow' | 'return';
+
+export interface TerminalBatchItem {
+  bottleId: string;
+  code: string;
+  chemicalName: string;
+  location: string;
+  previousWeight: number;
+  measuredWeight: number;
+  weightUnit: 'g';
+  status: string;
+}
+
+export interface ReagentOperationRecord {
+  id: string;
+  type: '领用' | '归还';
+  batchNo: string;
+  bottleCode: string;
+  chemicalName: string;
+  operator: string;
+  previousWeight: number;
+  measuredWeight: number;
+  weightDelta: number;
+  resultStatus: BottleStatus;
+  time: string;
 }
 
 export interface PurchaseOrder {

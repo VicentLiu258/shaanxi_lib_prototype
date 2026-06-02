@@ -326,7 +326,7 @@ export const SystemSettingsView: React.FC<{ onBack: () => void; onLogout: () => 
       triggerToast('超级管理员不能禁用！', 'error');
       return;
     }
-    const targetStatus = current === 'active' ? 'disabled' : 'active';
+    const targetStatus: UserAccount['status'] = current === 'active' ? 'disabled' : 'active';
     const updated = users.map(u => u.id === id ? { ...u, status: targetStatus } : u);
     setUsers(updated);
     localStorage.setItem('sys_users', JSON.stringify(updated));

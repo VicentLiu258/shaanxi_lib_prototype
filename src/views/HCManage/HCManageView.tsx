@@ -26,6 +26,7 @@ import { AlertPage } from './pages/AlertPage';
 
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { StorageOverviewPage } from './pages/StorageOverviewPage';
+import { ConsumablesPage } from './pages/ConsumablesPage';
 import { ComplianceControl } from './ComprehensiveModules';
 
 import {
@@ -127,6 +128,7 @@ export const HCManageView: React.FC = () => {
 
 
         <Route path="storage/overview" element={<StorageOverviewPage />} />
+        <Route path="storage/consumables" element={<ConsumablesPage />} />
 
         <Route path="storage/cabinets" element={<CabinetsPage />} />
 

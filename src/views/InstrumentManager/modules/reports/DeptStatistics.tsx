@@ -95,7 +95,7 @@ export const DeptStatistics: React.FC = () => {
                      tick={{ fontSize: 10, fontWeight: 900, fill: '#64748B' }} 
                      dy={10}
                   />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontMono: true, fill: '#94A3B8' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontFamily: 'JetBrains Mono, monospace', fill: '#94A3B8' }} />
                   <Tooltip 
                      cursor={{ fill: 'transparent' }}
                      content={({ active, payload }) => {
